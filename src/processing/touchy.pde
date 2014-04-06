@@ -14,3 +14,6 @@ int line_graph, error_count = 0, num_received = 0;
 
 boolean[] data_received = { false, false, false };
 float[] 
+
+void serialEvent() {
+}
