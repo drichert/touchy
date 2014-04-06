@@ -150,4 +150,3 @@ void send_all(unsigned int cmd, float arr1[], arr2[]) {
 
   send(cmd + 2, 1, 1);
 }
-
