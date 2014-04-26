@@ -1,103 +1,60 @@
 import processing.serial.*;
 
-//int port = 2, port_selected = 2;
-//
-//// Global vars
-//
-//int x, y, cmd;
-//boolean error = true;
-//
-//boolean update_graph = true;
-//int line_graph, error_count = 0, num_received = 0;
-//
-//// Local vars
-//
-//boolean[] data_received = { false, false, false };
-//float[]
+Serial port;
 
-int rxCount          = 0,
-    bufferSize       = 8,
-    messagesReceived = 0;
+int numFreqs = 200;
 
-boolean error;
+int[] ndxs   = new int[numFreqs];
+float[] vals = new float[numFreqs];
 
-int[] buffer = new int[bufferSize];
+// ASCII Line Feed
+int lf = 10;
 
-void serialEvent(Serial port) {
-  int inByte, checksum = 0;
+void setup() {
+  size(400, 400);
+  background(255);
+  stroke(30);
 
-  boolean dataReceived;
+  port = new Serial(this, Serial.list()[0], 115200);
+  port.clear();
+}
+
+void draw() {
+  // Index for popluating ndxs (frequency indexes)
+  // and vals (sensor data)
+  int _ndx = 0;
 
   while(port.available() > 0) {
-    inByte = port.read();
+    String buffer = port.readStringUntil(lf);
 
-    if(inByte == 0) rxCount = 0;
+    if(buffer != null) {
+      //ndxs = new int[numFreqs];
+      //vals = new float[numFreqs];
 
-    if(inByte > 255) {
-      println(" inByte = " + inByte);
-      exit();
-    }
+      String[] bufferVals = split(buffer, ",");
 
-    buffer[rxCount++] = inByte;
+      for(int i = 0; i < bufferVals.length; i++) {
+        if(match(bufferVals[i], "^[0-9.]+$") != null) {
+          if(i % 2 == 0) {
+            _ndx = i / 2;
 
-    if(rxCount > bufferSize) {
-      rxCount = 0;
-
-      messagesReceived++;
-
-      for(int n = 0; n < bufferSize -1; n++) {
-        checksum += buffer[n];
-      }
-      checksum %= 255;
-
-      if(checksum == buffer[bufferSize - 1]) {
-        error        = false;
-        dataReceived = true;
-      }
-      else {
-        error        = true;
-        dataReceived = false;
-      }
-
-      if(!error) {
-        int x, y, zeroByte, xLSB, xMSB, yLSB, yMSB, cmd;
-
-        cmd      = buffer[1];
-        xMSB     = buffer[2];
-        xLSB     = buffer[3];
-        yMSB     = buffer[4];
-        yLSB     = buffer[5];
-        zeroByte = buffer[6];
-
-        // Adjust for 0-values
-        if((zeroByte & 1) == 1) xLSB = 0;
-        if((zeroByte & 2) == 2) xMSB = 0;
-        if((zeroByte & 4) == 4) yLSB = 0;
-        if((zeroByte & 8) == 8) yMSB = 0;
-
-        // Combine bytes to make 16-bit ints
-        x = xMSB << 8 | xLSB;
-        y = yMSB << 8 | yLSB:
-
-        switch(cmd) {
-          case 1:
-            break;
-          case 2:
-            break;
-          case 3:
-            break;
-          case 4:
-            break;
-          case 5:
-            break;
-          case 6:
-            break;
-          case 20:
-            break;
-          case 21:
-            break;
+            //println("!!!" + bufferVals[i] + "!!!");
+            ndxs[_ndx] = int(bufferVals[i]);
+          }
+          else {
+            vals[_ndx] = Float.parseFloat(bufferVals[i]);
+          }
         }
       }
     }
+  }
+
+  background(255);
+  for(int i = 0; i < numFreqs; i++) {
+    int x = width / numFreqs * ndxs[i];
+    float y = vals[i];
+
+    //point(width / numFreqs * ndxs[i], vals[i]);
+    line(x, 0, x, y);
   }
 }
